@@ -13,7 +13,7 @@
             {
                 Response = default,
                 Status = status,
-                Description = "An error occured",
+                Description = "An Error occured",
                 Errors = new Dictionary<string, string> { { key, value } }
             };
         }
