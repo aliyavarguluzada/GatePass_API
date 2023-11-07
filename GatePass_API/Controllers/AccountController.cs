@@ -20,7 +20,7 @@ namespace GatePass_API.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult> AddUser(AddUserRequests request)
+        public async Task<ActionResult> Register(AddUserRequests request)
         {
             var user = new User
             {
