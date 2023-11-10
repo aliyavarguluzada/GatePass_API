@@ -1,6 +1,6 @@
 ﻿namespace GatePass_API.Core.Responses
 {
-    public class AddUserResponse
+    public class RegisterResponse
     {
         public int Id { get; set; }
         public string Name { get; set; }

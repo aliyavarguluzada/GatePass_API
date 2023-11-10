@@ -2,7 +2,7 @@
 
 namespace GatePass_API.Core.Requests
 {
-    public class AddUserRequests
+    public class RegisterRequest
     {
         [Required]
         public int Id { get; set; }

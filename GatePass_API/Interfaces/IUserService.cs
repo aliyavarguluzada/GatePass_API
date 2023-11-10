@@ -6,6 +6,8 @@ namespace GatePass_API.Interfaces
 {
     public interface IUserService
     {
-        Task<ServiceResult<AddUserResponse>> AddUser(AddUserRequests request);
+        Task<ServiceResult<RegisterResponse>> Register(RegisterRequest request);
+
+        Task<ServiceResult<LoginResponse>> Login(LoginRequest request);
     }
 }
