@@ -6,7 +6,6 @@ using GatePass_API.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
-using System.Transactions;
 
 namespace GatePass_API.Interfaces
 {
@@ -32,9 +31,9 @@ namespace GatePass_API.Interfaces
             using (SHA256 sha256Hash = SHA256.Create())
             {
 
-                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
+                byte[] hash = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
 
-                if (!user.Password.SequenceEqual(bytes))
+                if (!user.Password.SequenceEqual(hash))
                     return ServiceResult<LoginResponse>.ERROR("", "Şifrə yanlışdır");
 
             }
@@ -59,8 +58,8 @@ namespace GatePass_API.Interfaces
 
                 using (SHA256 sha256Hash = SHA256.Create())
                 {
-                    var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
-                    user.Password = bytes;
+                    var hash = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
+                    user.Password = hash;
                 }
 
                 _context.Users.Add(user);
