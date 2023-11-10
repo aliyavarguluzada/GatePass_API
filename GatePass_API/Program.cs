@@ -31,7 +31,7 @@ builder.Services.AddAuthentication(c =>
         ValidateIssuerSigningKey = true
     };
 });
-
+builder.Services.AddCors();
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 

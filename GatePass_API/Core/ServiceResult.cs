@@ -4,7 +4,7 @@
     {
         public T Response { get; set; }
         public int Status { get; set; }
-        public Dictionary<string, string> Errors { get; set; }
+        public Dictionary<string, string> Errors { get; set; }      
         public string Description { get; set; }
 
         public static ServiceResult<T> ERROR(string key, string value, int status = 400)

@@ -19,28 +19,42 @@ namespace GatePass_API.Interfaces
 
         public async Task<ServiceResult<LoginResponse>> Login(LoginRequest request)
         {
-            var user = await _context
-                            .Users
-                            .Where(c => c.Email == request.Email)
-                            .FirstOrDefaultAsync();
-
-            if (user is null)
-                return ServiceResult<LoginResponse>.ERROR("", "Belə bir user mövcud deyil");
-
-
-            using (SHA256 sha256Hash = SHA256.Create())
+            try
             {
 
-                byte[] hash = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
+                var user = await _context
+                                .Users
+                                .Where(c => c.Email == request.Email)
+                                .FirstOrDefaultAsync();
 
-                if (!user.Password.SequenceEqual(hash))
-                    return ServiceResult<LoginResponse>.ERROR("", "Şifrə yanlışdır");
+                if (user is null)
+                    return ServiceResult<LoginResponse>.ERROR("", "Belə bir user mövcud deyil");
 
+
+                using (SHA256 sha256Hash = SHA256.Create())
+                {
+
+                    byte[] hash = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
+
+                    if (!user.Password.SequenceEqual(hash))
+                        return ServiceResult<LoginResponse>.ERROR("", "Şifrə yanlışdır");
+
+                }
+
+                var response = new LoginResponse
+                {
+                    UserId = user.Id,
+                    Email = user.Email,
+                    Name = user.Name,
+                    Surname = user.Surname
+                };
+
+                return ServiceResult<LoginResponse>.OK(response);
             }
-
-            var response = new LoginResponse();
-
-            return ServiceResult<LoginResponse>.OK(response);
+            catch (Exception)
+            {
+                return ServiceResult<LoginResponse>.ERROR("", "Uçdu");
+            }
         }
 
         public async Task<ServiceResult<RegisterResponse>> Register(RegisterRequest request)
