@@ -9,6 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 var configuration = builder.Configuration;
 
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddTransient<IUserService, UserService>();
+
 builder.Services.AddAuthentication(c =>
 {
 

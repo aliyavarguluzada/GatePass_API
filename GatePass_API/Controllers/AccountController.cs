@@ -1,8 +1,9 @@
 ﻿using GatePass_API.Core.Requests;
 using GatePass_API.Data;
-using GatePass_API.Models;
+using GatePass_API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
 namespace GatePass_API.Controllers
@@ -11,34 +12,42 @@ namespace GatePass_API.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
+        private readonly IUserService _userService;
 
-        public AccountController(ApplicationDbContext context)
+        public AccountController(IConfiguration configuration, IUserService userService)
         {
-            _context = context;
+            _configuration = configuration;
+            _userService = userService;
         }
 
 
         [HttpPost]
         public async Task<ActionResult> Register(RegisterRequest request)
         {
-            var user = new User
-            {
-                Name = request.Name,
-                Surname = request.Surname,
-                Email = request.Email,
-            };
+            var result = _userService.Register(request);
 
-            using (SHA256 sha256Hash = SHA256.Create())
-            {
-                var bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
-                user.Password = bytes;
-            }
+            return Ok(result);
+        }
 
-            _context.Users.Add(user);
-            _context.SaveChanges();
+        [HttpGet]
+        public ActionResult Login([FromBody] LoginRequest request)
+        {
+            var result = _userService.Login(request);
 
-            return Ok();
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]));
+
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var Sectoken = new JwtSecurityToken(_configuration["JwtSettings:Issuer"],
+              _configuration["JwtSettings:Issuer"],
+              null,
+              expires: DateTime.Now.AddMinutes(120),
+              signingCredentials: credentials);
+
+            var token = new JwtSecurityTokenHandler().WriteToken(Sectoken);
+
+            return Ok(token);
         }
     }
 }
