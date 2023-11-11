@@ -1,6 +1,7 @@
 ﻿using Azure;
 using GatePass_API.Core.Requests;
 using GatePass_API.Data;
+using GatePass_API.DTOs;
 using GatePass_API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -71,6 +72,27 @@ namespace GatePass_API.Controllers
             var token = new JwtSecurityTokenHandler().WriteToken(Sectoken);
 
             return Ok();
+        }
+
+        [HttpGet("Users")]
+        public async Task<ActionResult> Users(string Email)
+        {
+            var user = await _context
+                .Users
+                .Where(c => c.Email == Email)
+                .Select(c => new UserDto
+                {
+                    UserId = c.Id,
+                    UserName = c.Name,
+                    UserSurname = c.Surname,
+                    UserEmail = c.Email
+                })
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+                return NotFound();
+
+            return Ok(user);
         }
     }
 }
