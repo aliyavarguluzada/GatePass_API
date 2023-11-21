@@ -9,5 +9,6 @@ namespace GatePass_API.Interfaces
         Task<ServiceResult<RegisterResponse>> Register(RegisterRequest request);
 
         Task<ServiceResult<LoginResponse>> Login(LoginRequest request);
+
     }
 }
