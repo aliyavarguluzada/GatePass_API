@@ -1,5 +1,4 @@
-﻿using Azure;
-using GatePass_API.Core.Requests;
+﻿using GatePass_API.Core.Requests;
 using GatePass_API.Data;
 using GatePass_API.DTOs;
 using GatePass_API.Interfaces;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 namespace GatePass_API.Controllers
@@ -28,12 +28,10 @@ namespace GatePass_API.Controllers
             _userService = userService;
         }
 
-
         [HttpPost("Register")]
         public ActionResult Register(RegisterRequest request)
         {
             var result = _userService.Register(request);
-
 
             return Ok(result);
         }
@@ -54,19 +52,19 @@ namespace GatePass_API.Controllers
         }
 
         [HttpPost("Login")]
-        [Authorize]
 
         public ActionResult Login([FromBody] LoginRequest request)
         {
             var result = _userService.Login(request);
 
+            var token = TokenCreator(request);
 
-            return Ok(result);
+            return Ok(token);
         }
 
 
 
-        [HttpGet("Users")]
+        [HttpPost("Users")]
         [Authorize]
         public async Task<ActionResult> Users(GetUserRequest request)
         {
@@ -86,6 +84,28 @@ namespace GatePass_API.Controllers
                 return NotFound();
 
             return Ok(user);
+        }
+
+        private string TokenCreator(LoginRequest request)
+        {
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, request.Email ),
+
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt:Token").Value!));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(10),
+                signingCredentials: creds);
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
         }
     }
 }

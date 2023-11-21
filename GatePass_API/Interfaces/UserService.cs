@@ -4,7 +4,9 @@ using GatePass_API.Core.Responses;
 using GatePass_API.Data;
 using GatePass_API.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 namespace GatePass_API.Interfaces
@@ -12,9 +14,11 @@ namespace GatePass_API.Interfaces
     public class UserService : IUserService
     {
         private readonly ApplicationDbContext _context;
-        public UserService(ApplicationDbContext context)
+        private readonly IConfiguration _configuration;
+        public UserService(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<ServiceResult<LoginResponse>> Login(LoginRequest request)
@@ -39,10 +43,14 @@ namespace GatePass_API.Interfaces
                     UserId = user.Id,
                     Email = user.Email,
                     Name = user.Name,
-                    Surname = user.Surname
+                    Surname = user.Surname,
+
+
                 };
+                string token = TokenCreator(request);
 
                 return ServiceResult<LoginResponse>.OK(response);
+
             }
             catch (Exception)
             {
@@ -71,7 +79,7 @@ namespace GatePass_API.Interfaces
                 _context.Users.Add(user);
                 _context.SaveChanges();
 
-                transaction.CommitAsync();
+                await transaction.CommitAsync();
 
                 var response = new RegisterResponse
                 {
@@ -90,7 +98,27 @@ namespace GatePass_API.Interfaces
             }
         }
 
+        public string TokenCreator(LoginRequest request)
+        {
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, request.Email ),
 
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt:Token").Value!));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(10),
+                signingCredentials: creds);
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
+        }
 
     }
 }
