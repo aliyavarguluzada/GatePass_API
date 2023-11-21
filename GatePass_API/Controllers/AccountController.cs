@@ -64,27 +64,7 @@ namespace GatePass_API.Controllers
 
 
 
-        [HttpPost("Users")]
-        [Authorize]
-        public async Task<ActionResult> Users(GetUserRequest request)
-        {
-            var user = await _context
-                .Users
-                .Where(c => c.Email == request.Email)
-                .Select(c => new UserDto
-                {
-                    UserId = c.Id,
-                    UserName = c.Name,
-                    UserSurname = c.Surname,
-                    UserEmail = c.Email
-                })
-                .FirstOrDefaultAsync();
-
-            if (user == null)
-                return NotFound();
-
-            return Ok(user);
-        }
+       
 
         private string TokenCreator(LoginRequest request)
         {
