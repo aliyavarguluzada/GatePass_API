@@ -53,7 +53,7 @@ namespace GatePass_API.Controllers
 
         [HttpPost("Login")]
 
-        public ActionResult Login([FromBody] LoginRequest request)
+        public async Task<ActionResult> Login([FromBody] LoginRequest request)
         {
             var result = _userService.Login(request);
 
