@@ -54,32 +54,25 @@ namespace GatePass_API.Controllers
         }
 
         [HttpPost("Login")]
+        [Authorize]
+
         public ActionResult Login([FromBody] LoginRequest request)
         {
             var result = _userService.Login(request);
 
 
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]));
-
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var Sectoken = new JwtSecurityToken(_configuration["JwtSettings:Issuer"],
-              _configuration["JwtSettings:Issuer"],
-              null,
-              expires: DateTime.Now.AddMinutes(120),
-              signingCredentials: credentials);
-
-            var token = new JwtSecurityTokenHandler().WriteToken(Sectoken);
-
-            return Ok();
+            return Ok(result);
         }
 
+
+
         [HttpGet("Users")]
-        public async Task<ActionResult> Users(string Email)
+        [Authorize]
+        public async Task<ActionResult> Users(GetUserRequest request)
         {
             var user = await _context
                 .Users
-                .Where(c => c.Email == Email)
+                .Where(c => c.Email == request.Email)
                 .Select(c => new UserDto
                 {
                     UserId = c.Id,

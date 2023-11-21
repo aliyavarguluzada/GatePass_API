@@ -31,15 +31,8 @@ namespace GatePass_API.Interfaces
                     return ServiceResult<LoginResponse>.ERROR("", "Belə bir user mövcud deyil");
 
 
-                using (SHA256 sha256Hash = SHA256.Create())
-                {
-
-                    byte[] hash = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
-
-                    if (!user.Password.SequenceEqual(hash))
-                        return ServiceResult<LoginResponse>.ERROR("", "Şifrə yanlışdır");
-
-                }
+                if (!BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
+                    return ServiceResult<LoginResponse>.ERROR("", "Password yanlışdır");
 
                 var response = new LoginResponse
                 {
@@ -70,11 +63,10 @@ namespace GatePass_API.Interfaces
                     Email = request.Email
                 };
 
-                using (SHA256 sha256Hash = SHA256.Create())
-                {
-                    var hash = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(request.Password));
-                    user.Password = hash;
-                }
+
+                var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+                user.Password = passwordHash;
 
                 _context.Users.Add(user);
                 _context.SaveChanges();
@@ -97,5 +89,8 @@ namespace GatePass_API.Interfaces
                 return ServiceResult<RegisterResponse>.ERROR("", "Uçdu");
             }
         }
+
+
+
     }
 }
